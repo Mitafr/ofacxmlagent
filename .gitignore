@@ -1,0 +1,13 @@
+/target
+/*data/
+/logs
+.env
+debug/
+**/*.rs.bk
+*.pdb
+/config
+.vscode
+/vendor
+.cargo
+tests/setup.sh
+output
