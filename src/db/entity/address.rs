@@ -82,14 +82,14 @@ impl Model {
                         1450 => address.region = Some(value),
                         1451 => address.address = Some(value),
                         1452 => {
-                            if address.address != None {
+                            if address.address.is_some() {
                                 address.address.as_mut().unwrap().push(',');
                                 address.address.as_mut().unwrap().push(' ');
                                 address.address.as_mut().unwrap().push_str(&value);
                             }
                         }
                         1453 => {
-                            if address.address != None {
+                            if address.address.is_some() {
                                 address.address.as_mut().unwrap().push(',');
                                 address.address.as_mut().unwrap().push(' ');
                                 address.address.as_mut().unwrap().push_str(&value);

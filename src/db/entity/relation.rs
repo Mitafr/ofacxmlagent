@@ -92,7 +92,7 @@ impl ActiveModel {
 }
 
 // Return true if inserted (i.e new relation)
-async fn insert_if_new_relation(model: &mut Model, in_db: &Vec<Model>, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<bool, DbErr> {
+async fn insert_if_new_relation(model: &mut Model, in_db: &[Model], tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<bool, DbErr> {
     let id = model.id;
     let sdn = model.from_profile_id;
     if in_db.iter().any(|m| m.id == id) {

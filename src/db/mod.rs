@@ -285,7 +285,7 @@ pub async fn get_last_issued_date(db: &DatabaseConnection) -> NaiveDate {
 }
 
 pub async fn find_fixed_ref_with_names(db: &DatabaseConnection) -> Result<BTreeMap<i32, Vec<String>>, DbErr> {
-    let mut records = BTreeMap::new();
+    let mut records: BTreeMap<i32, Vec<String>> = BTreeMap::new();
     let in_db_records: Vec<SdnAlias> = entity::sdn::Entity::find()
         .order_by_asc(entity::sdn::Column::FixedRef)
         .select_only()
@@ -320,7 +320,7 @@ pub async fn find_fixed_ref_with_names(db: &DatabaseConnection) -> Result<BTreeM
         .all(db)
         .await?;
     for record in in_db_records {
-        records.entry(record.fixed_ref).or_insert(Vec::new()).push(record.build_alias());
+        records.entry(record.fixed_ref).or_default().push(record.build_alias());
     }
 
     #[derive(Copy, Clone, Debug, EnumIter, DeriveColumn)]
@@ -347,7 +347,7 @@ pub async fn find_fixed_ref_with_names(db: &DatabaseConnection) -> Result<BTreeM
         .await?;
 
     for record in ddc_aliases {
-        records.entry(record.0).or_insert(Vec::new()).push(record.1);
+        records.entry(record.0).or_default().push(record.1);
     }
 
     Ok(records)

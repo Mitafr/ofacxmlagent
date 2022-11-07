@@ -170,8 +170,8 @@ impl OfacDocument {
     /// oldest archived files are removed if there is more than 5 files in the archive folder
     pub fn cleanup(&self) -> Result<(), std::io::Error> {
         let archive_folder = &self.root_folder.join("archive");
-        std::fs::create_dir_all(&archive_folder)?;
-        let mut paths: Vec<_> = std::fs::read_dir(&archive_folder).unwrap().map(|r| r.unwrap()).collect();
+        std::fs::create_dir_all(archive_folder)?;
+        let mut paths: Vec<_> = std::fs::read_dir(archive_folder).unwrap().map(|r| r.unwrap()).collect();
         paths.sort_by_key(|dir| dir.path());
         let count = paths.len();
         for (i, path) in paths.iter().enumerate() {

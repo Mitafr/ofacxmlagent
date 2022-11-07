@@ -621,10 +621,9 @@ impl FofdbofRecord {
             self.t_inf.push_str(&inf_tmp);
         }
         if self.t_inf.len() > 2048 {
-            match self.t_inf.char_indices().nth(2048) {
-                Some((idx, _)) => self.t_inf = self.t_inf[..idx].to_owned(),
-                None => {}
-            };
+            if let Some((idx, _)) = self.t_inf.char_indices().nth(2048) {
+                self.t_inf = self.t_inf[..idx].to_owned()
+            }
             warn!("Add info has been truncated at 2048 char (oid {})", self.t_oid);
         }
     }
