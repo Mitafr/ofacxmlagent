@@ -570,27 +570,10 @@ impl Model {
                 if let Some(date_period) = &feature.version.date_period.clone() {
                     match feature.feature_type {
                         8 => inner_relations.dobs.push(dob::Model::from_ofac_document(&feature.version)),
-                        867 => {
-                            let start = date_period.start.as_ref().unwrap();
-                            let end = date_period.end.as_ref().unwrap();
-                            if start.from == start.to && end.from == end.to {
-                                sdn_db.cmic_effective_date = Some(start.from.to_sql_date());
-                            }
-                        }
-                        868 => {
-                            let start = date_period.start.as_ref().unwrap();
-                            let end = date_period.end.as_ref().unwrap();
-                            if start.from == start.to && end.from == end.to {
-                                sdn_db.cmic_sales_date = Some(start.from.to_sql_date());
-                            }
-                        }
-                        869 => {
-                            let start = date_period.start.as_ref().unwrap();
-                            let end = date_period.end.as_ref().unwrap();
-                            if start.from == start.to && end.from == end.to {
-                                sdn_db.cmic_listing_date = Some(start.from.to_sql_date());
-                            }
-                        }
+                        45 => sdn_db.manufacture_date = date_period.parse_from_to(),
+                        867 => sdn_db.cmic_effective_date = date_period.parse_from_to(),
+                        868 => sdn_db.cmic_sales_date = date_period.parse_from_to(),
+                        869 => sdn_db.cmic_listing_date = date_period.parse_from_to(),
                         _ => {}
                     }
                 }
@@ -636,42 +619,17 @@ impl Model {
                         13 => inner_relations.bics.push(bic::Model::from_ofac_document(&feature.version)),
                         14 => inner_relations.websites.push(website::Model::from_ofac_document(&feature.version)),
                         21 => inner_relations.emails.push(email::Model::from_ofac_document(&feature.version)),
-                        24 => {
-                            if sdn_db.partysubtypeid == 1 {
-                                inner_relations.former_vessel_flags.push(former_vessel_flag::Model::from_ofac_document(&feature.version));
-                            }
-                        }
+                        t if t == 24 && sdn_db.partysubtypeid == 1 => inner_relations.former_vessel_flags.push(former_vessel_flag::Model::from_ofac_document(&feature.version)),
                         26 => sdn_db.title = if detail.value.is_some() { Some(detail.value.unwrap().to_uppercase()) } else { None },
-                        44 => sdn_db.construction_number = Some(feature.version.detail.as_ref().unwrap().value.as_ref().unwrap().to_uppercase()),
-                        45 => {
-                            let date_of_period = feature.version.date_period.as_ref().unwrap();
-                            let start = date_of_period.start.as_ref().unwrap();
-                            let end = date_of_period.end.as_ref().unwrap();
-                            if start.from == start.to && end.from == end.to {
-                                sdn_db.manufacture_date = Some(start.from.to_sql_date());
-                            }
-                        }
-                        46 => {
-                            sdn_db.transpondeur_code = Some(feature.version.detail.as_ref().unwrap().value.as_ref().unwrap().to_uppercase());
-                        }
-                        47 => {
-                            sdn_db.model = Some(feature.version.detail.as_ref().unwrap().value.as_ref().unwrap().to_uppercase());
-                        }
+                        44 => sdn_db.construction_number = Some(detail.value.as_ref().unwrap().to_uppercase()),
+                        46 => sdn_db.transpondeur_code = Some(detail.value.as_ref().unwrap().to_uppercase()),
+                        47 => sdn_db.model = Some(detail.value.as_ref().unwrap().to_uppercase()),
                         48 => inner_relations.operators.push(aircraft_operator::Model::from_ofac_document(&feature.version)),
-                        49 => {
-                            sdn_db.previous_tail_number = Some(feature.version.detail.as_ref().unwrap().value.as_ref().unwrap().to_uppercase());
-                        }
-                        50 => {
-                            sdn_db.manufacturer_serial_number = Some(feature.version.detail.as_ref().unwrap().value.as_ref().unwrap().to_uppercase());
-                        }
-                        64 => {
-                            sdn_db.tail_number = Some(feature.version.detail.as_ref().unwrap().value.as_ref().unwrap().to_uppercase());
-                        }
+                        49 => sdn_db.previous_tail_number = Some(detail.value.as_ref().unwrap().to_uppercase()),
+                        50 => sdn_db.manufacturer_serial_number = Some(detail.value.as_ref().unwrap().to_uppercase()),
+                        64 => sdn_db.tail_number = Some(detail.value.as_ref().unwrap().to_uppercase()),
                         104 => sdn_db.ifca_determination = detail.detail_reference_id,
-                        125 => {
-                            let reference_id = detail.detail_reference_id.unwrap();
-                            sdn_db.additional_sanctions_information = Some(reference_id);
-                        }
+                        125 => sdn_db.additional_sanctions_information = Some(detail.detail_reference_id.unwrap()),
                         164 => inner_relations.biks.push(bik::Model::from_ofac_document(&feature.version)),
                         204 => inner_relations.eo13662dds.push(eo13662dd::Model::from_ofac_document(&feature.version)),
                         224 => {
@@ -683,16 +641,8 @@ impl Model {
                                 None
                             }
                         }
-                        264 => {
-                            if let Some(locode) = detail.value {
-                                sdn_db.locode = Some(locode.to_uppercase());
-                            }
-                        }
-                        304 => {
-                            if let Some(micex_code) = detail.value {
-                                sdn_db.micex_code = Some(micex_code.to_uppercase());
-                            }
-                        }
+                        264 => sdn_db.locode = Some(detail.value.as_ref().unwrap().to_uppercase()),
+                        304 => sdn_db.micex_code = Some(detail.value.as_ref().unwrap().to_uppercase()),
                         344 => match &mut sdn_db.dca_xbt {
                             Some(address) => {
                                 address.push('/');
@@ -735,7 +685,7 @@ impl Model {
                                 sdn_db.organization_established_date = Some(date_period.start.as_ref().unwrap().from.to_sql_date());
                             }
                         }
-                        647 => sdn_db.organization_type = feature.version.detail.as_ref().unwrap().detail_reference_id,
+                        647 => sdn_db.organization_type = detail.detail_reference_id,
                         686 => match &mut sdn_db.dca_zec {
                             Some(address) => {
                                 address.push('/');

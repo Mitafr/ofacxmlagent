@@ -41,6 +41,17 @@ pub struct DatePeriod {
     pub end: Option<DatePeriodRange>,
 }
 
+impl DatePeriod {
+    pub fn parse_from_to(&self) -> Option<NaiveDate> {
+        let start = self.start.as_ref().unwrap();
+        let end = self.end.as_ref().unwrap();
+        if start.from == start.to && end.from == end.to {
+            return Some(start.from.to_sql_date());
+        }
+        None
+    }
+}
+
 #[derive(Debug, Deserialize, PartialEq, Clone, Eq)]
 pub struct DatePeriodRange {
     #[serde(rename = "From")]
