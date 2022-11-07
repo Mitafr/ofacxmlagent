@@ -13,7 +13,7 @@ use clap::Parser;
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn Error>> {
     let now = Instant::now();
-    dotenv::dotenv().ok();
+    dotenvy::dotenv().ok();
     let mut args = Args::parse();
     let mut configs = load_configs(&mut args);
     match &args.mode[..] {
