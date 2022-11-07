@@ -21,7 +21,6 @@ serde_yaml = "0.9"
 dotenvy = "0.15"
 sea-orm = { version = "0.10.1", features = [
     "sqlx-mysql",
-    "sqlx-postgres",
     "runtime-tokio-rustls",
     "macros",
 ] }

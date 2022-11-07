@@ -107,8 +107,8 @@ impl Model {
 }
 
 impl ActiveModel {
-    pub async fn process_entities(entities: Vec<Model>, db: Arc<DatabaseConnection>, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<(), DbErr> {
-        let in_db = Arc::new(Entity::find().all(&*db).await?);
+    pub async fn process_entities(entities: Vec<Model>, db: &DatabaseConnection, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<(), DbErr> {
+        let in_db = Arc::new(Entity::find().all(db).await?);
         let tasks: Vec<_> = entities.into_iter().map(move |e| tokio::spawn(ActiveModel::process_entity(e, Arc::clone(&in_db), Arc::clone(tx)))).collect();
         for task in tasks {
             task.await.unwrap().unwrap();

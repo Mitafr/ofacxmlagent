@@ -57,8 +57,8 @@ impl Model {
 }
 
 impl ActiveModel {
-    pub async fn process_entities(entities: Vec<Model>, db: Arc<DatabaseConnection>, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<(), DbErr> {
-        let in_db = Arc::new(Entity::find().all(&*db).await?);
+    pub async fn process_entities(entities: Vec<Model>, db: &DatabaseConnection, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<(), DbErr> {
+        let in_db = Entity::find().all(db).await?;
         let tasks: Vec<_> = entities
             .into_iter()
             .map(move |e| {
@@ -71,7 +71,7 @@ impl ActiveModel {
         }
         Ok(())
     }
-    pub async fn process_entity(mut model: Model, in_db: Arc<Vec<Model>>, tx: Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<(), DbErr> {
+    pub async fn process_entity(mut model: Model, in_db: Vec<Model>, tx: Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<(), DbErr> {
         if insert_if_new_relation(&mut model, &in_db, &tx).await? {
             return Ok(());
         }
@@ -92,7 +92,7 @@ impl ActiveModel {
 }
 
 // Return true if inserted (i.e new relation)
-async fn insert_if_new_relation(model: &mut Model, in_db: &Arc<Vec<Model>>, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<bool, DbErr> {
+async fn insert_if_new_relation(model: &mut Model, in_db: &Vec<Model>, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<bool, DbErr> {
     let id = model.id;
     let sdn = model.from_profile_id;
     if in_db.iter().any(|m| m.id == id) {

@@ -105,7 +105,7 @@ impl Importer {
             sdns.push(sdn::Model::from_ofac_document(&DocumentEntity(distinct_party, &document.locations, &document.sanction_entries), references)?);
         }
         info!("DistinctParties parsed, found {} entities", sdns.len());
-        sdn::ActiveModel::process_entities(&sdns, Arc::from(db.clone()), &self.transaction_manager).await?;
+        sdn::ActiveModel::process_entities(&sdns, db.clone(), &self.transaction_manager).await?;
         info!("DistinctParties saved");
         Ok(())
     }
@@ -117,7 +117,7 @@ impl Importer {
             documents.push(document::Model::from_ofac_document(document, references));
         }
         info!("Documents parsed, found {} entities", documents.len());
-        document::ActiveModel::process_entities(documents.clone(), Arc::from(db.clone()), &self.transaction_manager).await?;
+        document::ActiveModel::process_entities(documents.clone(), db, &self.transaction_manager).await?;
         info!("Documents saved");
         Ok(())
     }
@@ -129,7 +129,7 @@ impl Importer {
             relations.push(relation::Model::from_ofac_document(relationshipdoc));
         }
         info!("Relationships parsed, found {} entities", relations.len());
-        relation::ActiveModel::process_entities(relations.clone(), Arc::from(db.clone()), &self.transaction_manager).await?;
+        relation::ActiveModel::process_entities(relations.clone(), db, &self.transaction_manager).await?;
         info!("Relationships saved");
         Ok(())
     }

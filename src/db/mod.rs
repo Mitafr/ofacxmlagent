@@ -22,7 +22,6 @@ use std::collections::BTreeMap;
 pub async fn init_db(config: &Config) -> Result<DatabaseConnection, DbErr> {
     let mut options = ConnectOptions::new(config.get_connection_string());
     options.sqlx_logging(config.debug);
-    options.min_connections(16);
     info!("Trying to connect to db...");
     match Database::connect(options).await {
         Ok(db) => {
@@ -166,7 +165,7 @@ where
     R: Send + Sync + OfacRelEntity + ActiveModelBehavior + ActiveModelTrait + IntoActiveModel<R>,
     AM: Send + Sync + PartialEq + ActiveModelBehavior + ActiveModelTrait<Entity = E>,
 {
-    async fn process_entity(models: &mut [M], related: &mut Vec<M>, db: &Arc<DatabaseConnection>, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>, identity: i32, op: &mut OfacEntityFinalOp) -> Result<(), DbErr> {
+    async fn process_entity(models: &mut [M], related: &mut Vec<M>, db: &DatabaseConnection, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>, identity: i32, op: &mut OfacEntityFinalOp) -> Result<(), DbErr> {
         for model in models.iter_mut() {
             if Self::insert_if_new(model, tx, related, identity).await? {
                 if *op == OfacEntityFinalOp::Nothing {
@@ -209,34 +208,34 @@ where
 
     /// If entity is same as DB except for topmaj
     /// We have to update topmaj only
-    async fn update_only_topmaj(model: &mut M, db: &Arc<DatabaseConnection>) -> Result<(), DbErr> {
+    async fn update_only_topmaj(model: &mut M, db: &DatabaseConnection) -> Result<(), DbErr> {
         let mut am: AM = model.clone().into_active_model();
         Self::set_topmaj_active(&mut am, "N".to_owned());
-        am.update(&**db).await?;
+        am.update(db).await?;
         Ok(())
     }
 
     /// If entity is different from in DB
     /// We have to update all field
-    async fn update_entity(model: &mut M, db: &Arc<DatabaseConnection>) -> Result<(), DbErr> {
+    async fn update_entity(model: &mut M, db: &DatabaseConnection) -> Result<(), DbErr> {
         Self::set_topmaj(model, "O".to_owned());
         let mut am = model.clone().into_active_model();
         Self::set_all_active(&mut am)?;
-        am.update(&**db).await?;
+        am.update(db).await?;
         Ok(())
     }
 
     /// If related (i.e entity is in DB but not present in xml doc) remains after entity processed
     /// We have to delete these entities in DB
-    async fn process_related(related: &[M], db: &Arc<DatabaseConnection>, rhs: i32) -> Result<(), DbErr> {
+    async fn process_related(related: &[M], db: &DatabaseConnection, rhs: i32) -> Result<(), DbErr> {
         for model_rel in related {
             let am = model_rel.clone().into_active_model();
             let primary_key_value = match am.get_primary_key_value() {
                 Some(val) => FromValueTuple::from_value_tuple(val),
                 None => return Err(DbErr::Exec(sea_orm::RuntimeErr::Internal("Fail to get primary key from model".to_owned()))),
             };
-            R::generate(primary_key_value, rhs).delete(&**db).await?;
-            am.delete(&**db).await?;
+            R::generate(primary_key_value, rhs).delete(db).await?;
+            am.delete(db).await?;
         }
         Ok(())
     }

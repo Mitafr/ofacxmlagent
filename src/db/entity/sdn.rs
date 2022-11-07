@@ -143,7 +143,7 @@ pub struct SdnInnerRelation {
 }
 
 impl SdnInnerRelation {
-    async fn process_relations(&mut self, db: &Arc<DatabaseConnection>, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<OfacEntityFinalOp, DbErr> {
+    async fn process_relations(&mut self, db: &DatabaseConnection, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<OfacEntityFinalOp, DbErr> {
         let mut op = OfacEntityFinalOp::Nothing;
         if !self.is_active {
             info!("SDN with fixed_ref {} is INACTIVE and skipped", self.sdn.fixed_ref);
@@ -151,42 +151,34 @@ impl SdnInnerRelation {
         }
         let id = self.sdn.fixed_ref;
         let identity = self.sdn.identity;
-        address::ActiveModel::process_entity(&mut self.address, &mut self.sdn.find_linked(address_sdn::SdnToAddress).all(&**db).await?, db, tx, identity, &mut op).await?;
-        aircraft_operator::ActiveModel::process_entity(&mut self.operators, &mut self.sdn.find_linked(aircraft_operator_sdn::SdnToAircraftOperator).all(&**db).await?, db, tx, id, &mut op).await?;
-        name::ActiveModel::process_entity(&mut self.names, &mut self.sdn.find_linked(name_sdn::SdnToName).all(&**db).await?, db, tx, id, &mut op).await?;
-        bic::ActiveModel::process_entity(&mut self.bics, &mut self.sdn.find_linked(bic_sdn::SdnToBic).all(&**db).await?, db, tx, id, &mut op).await?;
-        bik::ActiveModel::process_entity(&mut self.biks, &mut self.sdn.find_linked(bik_sdn::SdnToBik).all(&**db).await?, db, tx, id, &mut op).await?;
-        dob::ActiveModel::process_entity(&mut self.dobs, &mut self.sdn.find_linked(dob_identity::SdnToDob).all(&**db).await?, db, tx, identity, &mut op).await?;
-        caatsa235::ActiveModel::process_entity(&mut self.caatsa235s, &mut self.sdn.find_linked(caatsa235_sdn::SdnToCaatsa235).all(&**db).await?, db, tx, id, &mut op).await?;
-        citizen::ActiveModel::process_entity(&mut self.citizens, &mut self.sdn.find_linked(citizen_sdn::SdnToCitizen).all(&**db).await?, db, tx, id, &mut op).await?;
-        email::ActiveModel::process_entity(&mut self.emails, &mut self.sdn.find_linked(email_sdn::SdnToEmail).all(&**db).await?, db, tx, id, &mut op).await?;
-        eo13662dd::ActiveModel::process_entity(&mut self.eo13662dds, &mut self.sdn.find_linked(eo13662dd_sdn::SdnToEo13662dd).all(&**db).await?, db, tx, id, &mut op).await?;
-        eo13846inf::ActiveModel::process_entity(&mut self.eo13846infs, &mut self.sdn.find_linked(eo13846inf_sdn::SdnToEo13846inf).all(&**db).await?, db, tx, id, &mut op).await?;
-        eo14024dd::ActiveModel::process_entity(&mut self.eo14024dds, &mut self.sdn.find_linked(eo14024dd_sdn::SdnToEo14024dd).all(&**db).await?, db, tx, id, &mut op).await?;
-        equity_ticker::ActiveModel::process_entity(&mut self.equity_tickers, &mut self.sdn.find_linked(equity_ticker_sdn::SdnToEquityTicker).all(&**db).await?, db, tx, id, &mut op).await?;
+        address::ActiveModel::process_entity(&mut self.address, &mut self.sdn.find_linked(address_sdn::SdnToAddress).all(db).await?, db, tx, identity, &mut op).await?;
+        aircraft_operator::ActiveModel::process_entity(&mut self.operators, &mut self.sdn.find_linked(aircraft_operator_sdn::SdnToAircraftOperator).all(db).await?, db, tx, id, &mut op).await?;
+        name::ActiveModel::process_entity(&mut self.names, &mut self.sdn.find_linked(name_sdn::SdnToName).all(db).await?, db, tx, id, &mut op).await?;
+        bic::ActiveModel::process_entity(&mut self.bics, &mut self.sdn.find_linked(bic_sdn::SdnToBic).all(db).await?, db, tx, id, &mut op).await?;
+        bik::ActiveModel::process_entity(&mut self.biks, &mut self.sdn.find_linked(bik_sdn::SdnToBik).all(db).await?, db, tx, id, &mut op).await?;
+        dob::ActiveModel::process_entity(&mut self.dobs, &mut self.sdn.find_linked(dob_identity::SdnToDob).all(db).await?, db, tx, identity, &mut op).await?;
+        caatsa235::ActiveModel::process_entity(&mut self.caatsa235s, &mut self.sdn.find_linked(caatsa235_sdn::SdnToCaatsa235).all(db).await?, db, tx, id, &mut op).await?;
+        citizen::ActiveModel::process_entity(&mut self.citizens, &mut self.sdn.find_linked(citizen_sdn::SdnToCitizen).all(db).await?, db, tx, id, &mut op).await?;
+        email::ActiveModel::process_entity(&mut self.emails, &mut self.sdn.find_linked(email_sdn::SdnToEmail).all(db).await?, db, tx, id, &mut op).await?;
+        eo13662dd::ActiveModel::process_entity(&mut self.eo13662dds, &mut self.sdn.find_linked(eo13662dd_sdn::SdnToEo13662dd).all(db).await?, db, tx, id, &mut op).await?;
+        eo13846inf::ActiveModel::process_entity(&mut self.eo13846infs, &mut self.sdn.find_linked(eo13846inf_sdn::SdnToEo13846inf).all(db).await?, db, tx, id, &mut op).await?;
+        eo14024dd::ActiveModel::process_entity(&mut self.eo14024dds, &mut self.sdn.find_linked(eo14024dd_sdn::SdnToEo14024dd).all(db).await?, db, tx, id, &mut op).await?;
+        equity_ticker::ActiveModel::process_entity(&mut self.equity_tickers, &mut self.sdn.find_linked(equity_ticker_sdn::SdnToEquityTicker).all(db).await?, db, tx, id, &mut op).await?;
         former_vessel_flag::ActiveModel::process_entity(
             &mut self.former_vessel_flags,
-            &mut self.sdn.find_linked(former_vessel_flag_sdn::SdnToFormerVesselFlag).all(&**db).await?,
+            &mut self.sdn.find_linked(former_vessel_flag_sdn::SdnToFormerVesselFlag).all(db).await?,
             db,
             tx,
             id,
             &mut op,
         )
         .await?;
-        isin::ActiveModel::process_entity(&mut self.isins, &mut self.sdn.find_linked(isin_sdn::SdnToIsin).all(&**db).await?, db, tx, id, &mut op).await?;
-        issuer_name::ActiveModel::process_entity(&mut self.issuer_names, &mut self.sdn.find_linked(issuer_name_sdn::SdnToIssuerName).all(&**db).await?, db, tx, id, &mut op).await?;
-        nationality::ActiveModel::process_entity(
-            &mut self.nationalities,
-            &mut self.sdn.find_linked(nationality_identity::SdnToNationality).all(&**db).await?,
-            db,
-            tx,
-            identity,
-            &mut op,
-        )
-        .await?;
+        isin::ActiveModel::process_entity(&mut self.isins, &mut self.sdn.find_linked(isin_sdn::SdnToIsin).all(db).await?, db, tx, id, &mut op).await?;
+        issuer_name::ActiveModel::process_entity(&mut self.issuer_names, &mut self.sdn.find_linked(issuer_name_sdn::SdnToIssuerName).all(db).await?, db, tx, id, &mut op).await?;
+        nationality::ActiveModel::process_entity(&mut self.nationalities, &mut self.sdn.find_linked(nationality_identity::SdnToNationality).all(db).await?, db, tx, identity, &mut op).await?;
         nationality_registration::ActiveModel::process_entity(
             &mut self.nationality_registrations,
-            &mut self.sdn.find_linked(nationality_registration_sdn::SdnToNationalityRegistration).all(&**db).await?,
+            &mut self.sdn.find_linked(nationality_registration_sdn::SdnToNationalityRegistration).all(db).await?,
             db,
             tx,
             id,
@@ -195,18 +187,18 @@ impl SdnInnerRelation {
         .await?;
         other_vessel_flag::ActiveModel::process_entity(
             &mut self.other_vessel_flags,
-            &mut self.sdn.find_linked(other_vessel_flag_sdn::SdnToOtherVesselFlag).all(&**db).await?,
+            &mut self.sdn.find_linked(other_vessel_flag_sdn::SdnToOtherVesselFlag).all(db).await?,
             db,
             tx,
             id,
             &mut op,
         )
         .await?;
-        phone_number::ActiveModel::process_entity(&mut self.phone_numbers, &mut self.sdn.find_linked(phone_number_sdn::SdnToPhoneNumber).all(&**db).await?, db, tx, id, &mut op).await?;
-        program::ActiveModel::process_entity(&mut self.programs, &mut self.sdn.find_linked(sdn_program::SdnToProgram).all(&**db).await?, db, tx, id, &mut op).await?;
-        pob::ActiveModel::process_entity(&mut self.pobs, &mut self.sdn.find_linked(pob_identity::SdnToPob).all(&**db).await?, db, tx, identity, &mut op).await?;
-        target::ActiveModel::process_entity(&mut self.targets, &mut self.sdn.find_linked(target_sdn::SdnToTarget).all(&**db).await?, db, tx, id, &mut op).await?;
-        website::ActiveModel::process_entity(&mut self.websites, &mut self.sdn.find_linked(website_identity::SdnToWebsite).all(&**db).await?, db, tx, identity, &mut op).await?;
+        phone_number::ActiveModel::process_entity(&mut self.phone_numbers, &mut self.sdn.find_linked(phone_number_sdn::SdnToPhoneNumber).all(db).await?, db, tx, id, &mut op).await?;
+        program::ActiveModel::process_entity(&mut self.programs, &mut self.sdn.find_linked(sdn_program::SdnToProgram).all(db).await?, db, tx, id, &mut op).await?;
+        pob::ActiveModel::process_entity(&mut self.pobs, &mut self.sdn.find_linked(pob_identity::SdnToPob).all(db).await?, db, tx, identity, &mut op).await?;
+        target::ActiveModel::process_entity(&mut self.targets, &mut self.sdn.find_linked(target_sdn::SdnToTarget).all(db).await?, db, tx, id, &mut op).await?;
+        website::ActiveModel::process_entity(&mut self.websites, &mut self.sdn.find_linked(website_identity::SdnToWebsite).all(db).await?, db, tx, identity, &mut op).await?;
         Ok(op)
     }
 }
@@ -826,13 +818,12 @@ impl ActiveModel {
     /// Process each entities in paralell
     /// * `db` - is used for SELECT
     /// * `tx` - is used for INSERT/UPDATE/DELETE
-    pub async fn process_entities(entities: &[(Model, SdnInnerRelation)], db: Arc<DatabaseConnection>, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<(), DbErr> {
+    pub async fn process_entities(entities: &[(Model, SdnInnerRelation)], db: DatabaseConnection, tx: &Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<(), DbErr> {
         let tasks: Vec<_> = entities
             .iter()
             .map(|e| {
-                let db = Arc::clone(&db);
                 let tx = Arc::clone(tx);
-                tokio::spawn(ActiveModel::process_entity(e.0.clone(), e.1.clone(), db, tx))
+                tokio::spawn(ActiveModel::process_entity(e.0.clone(), e.1.clone(), db.clone(), tx))
             })
             .collect();
         let mut saved_sdns = Vec::new();
@@ -844,9 +835,9 @@ impl ActiveModel {
     }
 
     /// Process an entity to save it in DB
-    async fn process_entity(mut sdn: Model, mut relations: SdnInnerRelation, db: Arc<DatabaseConnection>, tx: Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<i32, DbErr> {
+    async fn process_entity(mut sdn: Model, mut relations: SdnInnerRelation, db: DatabaseConnection, tx: Arc<tokio::sync::Mutex<DatabaseTransaction>>) -> Result<i32, DbErr> {
         let fixed_ref = sdn.fixed_ref;
-        if let Some(in_db) = Entity::find().filter(Column::FixedRef.eq(sdn.fixed_ref)).one(&*db).await? {
+        if let Some(in_db) = Entity::find().filter(Column::FixedRef.eq(sdn.fixed_ref)).one(&db).await? {
             relations.sdn = in_db.clone();
             let mut sdn_db = in_db;
             let in_db_topmaj = sdn_db.topmaj;
